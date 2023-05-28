@@ -1,5 +1,7 @@
 
 var User = require('../models/user')
+var DomainScan = require('../models/domainscan')
+var SubDomainScan = require('../models/subdomainscan')
 const jwt = require('jsonwebtoken')
 const secretKey = require('../config/dbconfig').secret
 var bcrypt = require('bcrypt')
@@ -193,7 +195,108 @@ var functions = {
         else{
             return res.status(200).json({success:false, msg: 'Illegal attribute name'})
         }
-    }
+    },
+
+    getScanHistory: async function(req, res) {
+        var history = await User.findOne({email: req.user.email}).select('vulnScans')
+        if(!history) {
+            res.status(403).send({success: false, msg: "User Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, history: history, msg: "History Found"})
+        }
+    },
+
+    getDomainScanInfo: async function(req, res) {
+        if ((!req.body.domainname)){
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
+        }
+        var domainscan = await DomainScan.findOne({email: req.user.email, domainName: req.body.domainname}, 'domainName startedOn status progress vulnerabilitiesCount')
+        if(!domainscan) {
+            res.status(403).send({success: false, msg: "Scan Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, scanInfo: domainscan, msg: "Scan Found"})
+        }
+    },
+
+    getDomainScanSubdomains: async function(req, res) {
+        if ((!req.body.domainname)){
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
+        }
+        var domainscan = await DomainScan.findOne({email: req.user.email, domainName: req.body.domainname}, 'domainName subdomainsFound')
+        if(!domainscan) {
+            res.status(403).send({success: false, msg: "Scan Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, scanSubdomains: domainscan, msg: "Scan Subdomains Found"})
+        }
+    },
+
+    getDomainScanVulnerabilities: async function(req, res) {
+        if ((!req.body.domainname)){
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
+        }
+        var vulnerabilities = await DomainScan.findOne({email: req.user.email, domainName: req.body.domainname}, 'vulnerabilities')
+        if(!vulnerabilities) {
+            res.status(403).send({success: false, msg: "Scan Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, vulnerabilities: vulnerabilities, msg: "Scan Vulnerabilities Found"})
+        }
+    },
+
+    getSubDomainScanVulnerabilities: async function(req, res) {
+        if ((!req.body.domainname || !req.body.subdomainname)){
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
+        }
+        var subvulnerabilities = await DomainScan.findOne({email: req.user.email, domainName: req.body.domainname}, { vulnerabilities: { $elemMatch: { subdomainname: "www.vulnweb.com" } }})
+        if(!subvulnerabilities) {
+            res.status(403).send({success: false, msg: "Scan Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, vulnerabilities: subvulnerabilities, msg: "Scan Vulnerabilities Found"})
+        }
+    },
+
+    getSubDomainScanInfo: async function(req, res) {
+        if ((!req.body.domainname || !req.body.subdomainname)){
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
+        }
+        var subdomainscan = await SubDomainScan.findOne({email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname }, 'subdomainName domainName status progress vulnerabilitiesCount')
+        if(!subdomainscan) {
+            res.status(403).send({success: false, msg: "Scan Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, scanInfo: subdomainscan, msg: "Scan Found"})
+        }
+    },
+
+    getSubDomainScanPorts: async function(req, res) {
+        if ((!req.body.domainname || !req.body.subdomainname)){
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
+        }
+        var subdomainscan = await SubDomainScan.findOne({email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname }, 'subdomainName domainName ports')
+        if(!subdomainscan) {
+            res.status(403).send({success: false, msg: "Scan Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, scanInfo: subdomainscan, msg: "Scan Found"})
+        }
+    },
+
+    getSubDomainScanURLs: async function(req, res) {
+        if ((!req.body.domainname || !req.body.subdomainname)){
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
+        }
+        var subdomainscan = await SubDomainScan.findOne({email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname }, 'subdomainName domainName urls')
+        if(!subdomainscan) {
+            res.status(403).send({success: false, msg: "Scan Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, scanInfo: subdomainscan, msg: "Scan Found"})
+        }
+    },
 }
 
 function generateApiKey() {

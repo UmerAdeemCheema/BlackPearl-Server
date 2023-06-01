@@ -23,7 +23,6 @@ var middleware = {
     authenticateAPIKey : async function (req, res, next) {
         const email = req.headers['bpemail'];
         const apiKey = req.headers['bpapikey'];
-        console.log(email+""+apiKey)
     
         if (!email || !apiKey) {
             return res.status(401).json({ message: 'API Key or Email not provided' });

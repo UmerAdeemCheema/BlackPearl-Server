@@ -35,6 +35,7 @@ var vulnfunctions = {
                     foreignDomainId :savedScan._id,
                     domainName: req.body.domainname,
                     subDomainsScanned: 0,
+                    status: "Running",
                     process: "Subdomain Enumeration",
                     inProcessSubdomain:""
                 }
@@ -200,7 +201,6 @@ var vulnfunctions = {
     }
     else {
         const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability") && scan.process.charAt(scan.process.length - 1) == req.body.data.vulnerability_id));
-        
         if (!conflict) {
           res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
         } 
@@ -344,7 +344,33 @@ var vulnfunctions = {
       )
       res.json({ success: true, msg: 'Successfully saved' });
     }
-  }
+  },
+
+  updateScanStatus: async function (req, res) {
+    if (!req.body.domainname || !req.body.status) {
+      res.json({ success: false, msg: 'Enter all Fields' });
+    } 
+    else {
+      const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname));
+
+      if (!conflict) {
+        res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
+      } 
+      else {
+          await DomainScan.findOneAndUpdate(
+            { email: req.user.email, domainName: req.body.domainname },
+            { $set: { status:req.body.status, } },
+            { new: true }
+          )
+            await User.findOneAndUpdate(
+                { email: req.user.email, 'vulnScans.domainName': req.body.domainname },
+                { $set: { 'vulnScans.$.status': req.body.status } },
+                { new: true }
+            )
+            res.json({ success: true, msg: 'Successfully saved' });
+      }
+    }
+  },
 
 }
 
@@ -361,22 +387,22 @@ function getDate() {
 
 function isSubdomainListValidObject(obj) {
     // Check if the object has the required properties
-    if (
-      typeof obj === 'object' &&
-      obj.hasOwnProperty('numberOfSubdomains') &&
-      obj.hasOwnProperty('numberOfActiveSubdomains') &&
-      obj.hasOwnProperty('array') &&
-      Array.isArray(obj.array)
-    ) {
-      // Check if the values are of the expected types
-      if (
-        typeof obj.numberOfSubdomains === 'number' &&
-        typeof obj.numberOfActiveSubdomains === 'number'
-      ) {
+    // if (
+    //   typeof obj === 'object' &&
+    //   obj.hasOwnProperty('numberOfSubdomains') &&
+    //   obj.hasOwnProperty('numberOfActiveSubdomains') &&
+    //   obj.hasOwnProperty('array') &&
+    //   Array.isArray(obj.array)
+    // ) {
+    //   // Check if the values are of the expected types
+    //   if (
+    //     typeof obj.numberOfSubdomains === 'number' &&
+    //     typeof obj.numberOfActiveSubdomains === 'number'
+    //   ) {
         return true;
-      }
-    }
-    return false;
+    //   }
+    // }
+    // return false;
   }
 
 

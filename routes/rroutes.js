@@ -41,6 +41,7 @@ router.post('/vulnscan/addVulnerability', middleware.authenticateAPIKey, vulnact
 router.post('/vulnscan/switchVulnerability', middleware.authenticateAPIKey, vulnactions.switchVulnerability)
 router.post('/vulnscan/completeSubdomainScan', middleware.authenticateAPIKey, vulnactions.completeSubdomainScan)
 router.post('/vulnscan/completeDomainScan', middleware.authenticateAPIKey, vulnactions.completeDomainScan)
+router.post('/vulnscan/updateScanStatus', middleware.authenticateAPIKey, vulnactions.updateScanStatus)
 
 
 module.exports = router;

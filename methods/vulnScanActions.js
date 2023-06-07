@@ -60,7 +60,7 @@ var vulnfunctions = {
             res.status(403).send({ success: false, msg: 'data object not valid' });
         }
         else {
-            const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.process == "Subdomain Enumeration"));
+            const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.process == "Subdomain Enumeration" && scan.status == "Running" && scan.status == "Running"));
             
             if (!conflict) {
               res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
@@ -94,7 +94,7 @@ var vulnfunctions = {
             res.json({ success: false, msg: 'Invalid Subdomain' });
         } 
         else {
-            const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.process === "Start Subdomain"));
+            const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.process === "Start Subdomain"  && scan.status == "Running"));
       
             if (!conflict) {
               res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
@@ -141,7 +141,7 @@ var vulnfunctions = {
         res.status(403).send({ success: false, msg: 'data object not valid' });
       }
       else {
-          const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process === "Port Scan"));
+          const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process === "Port Scan" && scan.status == "Running"));
           
           if (!conflict) {
             res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
@@ -173,7 +173,7 @@ var vulnfunctions = {
       res.status(403).send({ success: false, msg: 'data object not valid' });
     }
     else {
-        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process === "DirBrute"));
+        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process === "DirBrute" && scan.status == "Running"));
         
         if (!conflict) {
           res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
@@ -200,7 +200,7 @@ var vulnfunctions = {
       res.json({ success: false, msg: 'Enter all Fields' });
     }
     else {
-        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability") && scan.process.charAt(scan.process.length - 1) == req.body.data.vulnerability_id));
+        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability") && scan.status == "Running" && scan.process.charAt(scan.process.length - 1) == req.body.data.vulnerability_id));
         if (!conflict) {
           res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
         } 
@@ -237,7 +237,7 @@ var vulnfunctions = {
       res.json({ success: false, msg: 'Invalid Vulnerability Id' });
     }
     else {
-        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.process === "Vulnerability "+req.body.vulnerability_id));
+        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.process === "Vulnerability "+req.body.vulnerability_id && scan.status == "Running"));
         
         if (!conflict) {
           res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
@@ -265,7 +265,7 @@ var vulnfunctions = {
       res.json({ success: false, msg: 'Enter all Fields' });
     } 
     else {
-        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability")));
+        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability") && scan.status == "Running"));
   
         if (!conflict) {
           res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
@@ -295,7 +295,7 @@ var vulnfunctions = {
       res.json({ success: false, msg: 'Enter all Fields' });
     } 
     else {
-        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname));
+        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname) && scan.status == "Running");
   
         if (!conflict) {
           res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });

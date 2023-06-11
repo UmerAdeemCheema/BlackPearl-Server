@@ -200,7 +200,7 @@ var vulnfunctions = {
       res.json({ success: false, msg: 'Enter all Fields' });
     }
     else {
-        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability") && scan.status == "Running" && scan.process.charAt(scan.process.length - 1) == req.body.data.vulnerability_id));
+        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && (scan.inProcessSubdomain === req.body.subdomainname || parseInt(scan.process.split(' ')[1]) == 12) && scan.process.startsWith("Vulnerability") && scan.status == "Running" && parseInt(scan.process.split(' ')[1]) == req.body.data.vulnerability_id));
         if (!conflict) {
           res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
         } 

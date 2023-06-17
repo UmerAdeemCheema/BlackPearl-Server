@@ -75,7 +75,7 @@ var vulnfunctions = {
 
                 await User.findOneAndUpdate(
                     { email: req.user.email, 'vulnScans.domainName': req.body.domainname },
-                    { $set: { 'vulnScans.$.process': 'Start Subdomain' } },
+                    { $set: { 'vulnScans.$.process': 'Vulnerability 1' } },
                     { new: true }
                 )
 
@@ -186,7 +186,7 @@ var vulnfunctions = {
             )
             await User.findOneAndUpdate(
                 { email: req.user.email, 'vulnScans.domainName': req.body.domainname },
-                { $set: { 'vulnScans.$.process': 'Vulnerability 1' } },
+                { $set: { 'vulnScans.$.process': 'Vulnerability 3' } },
                 { new: true }
             )
             res.json({ success: true, msg: 'Successfully saved'});
@@ -200,7 +200,7 @@ var vulnfunctions = {
       res.json({ success: false, msg: 'Enter all Fields' });
     }
     else {
-        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && (scan.inProcessSubdomain === req.body.subdomainname || parseInt(scan.process.split(' ')[1]) == 12) && scan.process.startsWith("Vulnerability") && scan.status == "Running" && parseInt(scan.process.split(' ')[1]) == req.body.data.vulnerability_id));
+        const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability") && scan.status == "Running" && parseInt(scan.process.split(' ')[1]) == req.body.data.vulnerability_id ));
         if (!conflict) {
           res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
         } 
@@ -216,6 +216,10 @@ var vulnfunctions = {
             { $push: { vulnerabilities: req.body.data }, $inc: { [vulncategory]: 1 } },
             { new: true }
           )
+
+          if(req.body.data.vulnerability_id == 1 || req.body.data.vulnerability_id == 2){
+            res.json({ success: true, msg: 'Successfully saved'});
+          }
 
           await SubDomainScan.findOneAndUpdate(
             { email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname },
@@ -244,11 +248,14 @@ var vulnfunctions = {
         } 
         else {
           var vuln = "Vulnerability "+(req.body.vulnerability_id+1)
-            await SubDomainScan.findOneAndUpdate(
-              { email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname },
-              { $set: { urls: req.body.data } },
-              { new: true }
-            )
+            // await SubDomainScan.findOneAndUpdate(
+            //   { email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname },
+            //   { $set: { urls: req.body.data } },
+            //   { new: true }
+            // )
+            if(req.body.vulnerability_id == 2){
+              vuln = "Start Subdomain"
+            }
             await User.findOneAndUpdate(
                 { email: req.user.email, 'vulnScans.domainName': req.body.domainname },
                 { $set: { 'vulnScans.$.process': vuln } },

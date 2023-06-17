@@ -11,6 +11,9 @@ connectDB()
 var http = require("http");
 const app = express();
 
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
+
 if(process.env.NODE_ENV === 'development'){
     app.use(morgan('dev'))
 }

@@ -281,7 +281,7 @@ var vulnfunctions = {
 
           await SubDomainScan.findOneAndUpdate(
             { email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname },
-            { $set: { progress: 100, status:"Completed", } },
+            { $set: { progress: 100, status:"Start Subdomain", } },
             { new: true }
           )
 

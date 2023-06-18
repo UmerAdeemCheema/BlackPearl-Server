@@ -198,7 +198,9 @@ var functions = {
     },
 
     getScanHistory: async function(req, res) {
-        var history = await User.findOne({email: req.user.email}).select('vulnScans')
+        var history = await DomainScan.find({ email: req.user.email })
+        .select('domainName startedOn status progress vulnerabilitiesCount')
+        .exec();
         if(!history) {
             res.status(403).send({success: false, msg: "User Not Found"})
         }

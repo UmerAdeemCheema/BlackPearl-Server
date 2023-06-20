@@ -235,6 +235,19 @@ var functions = {
         }
     },
 
+    getDomainScanSubdomainsDetails: async function(req, res) {
+        if ((!req.body.domainname)){
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
+        }
+        var domainscan = await SubDomainScan.find({email: req.user.email, domainName: req.body.domainname}, 'subdomainName domainName status vulnerabilitiesCount progress')
+        if(!domainscan) {
+            res.status(403).send({success: false, msg: "Scan Not Found"})
+        }
+        else{
+            res.status(200).send({success: true, scanSubdomains: domainscan, msg: "Scan Subdomains Found"})
+        }
+    },
+
     getDomainScanVulnerabilities: async function(req, res) {
         if ((!req.body.domainname)){
             return res.status(400).json({success:false, msg: 'Enter all Fields'})
@@ -252,12 +265,16 @@ var functions = {
         if ((!req.body.domainname || !req.body.subdomainname)){
             return res.status(400).json({success:false, msg: 'Enter all Fields'})
         }
-        var subvulnerabilities = await DomainScan.findOne({email: req.user.email, domainName: req.body.domainname}, { vulnerabilities: { $elemMatch: { subdomainname: "www.vulnweb.com" } }})
+        var subvulnerabilities = await DomainScan.findOne({email: req.user.email, domainName: req.body.domainname})
+
         if(!subvulnerabilities) {
             res.status(403).send({success: false, msg: "Scan Not Found"})
         }
         else{
-            res.status(200).send({success: true, vulnerabilities: subvulnerabilities, msg: "Scan Vulnerabilities Found"})
+            const filteredVulnerabilities = subvulnerabilities.vulnerabilities.filter(
+                (vulnerability) => vulnerability.subdomain === req.body.subdomainname
+            );
+            res.status(200).send({success: true, vulnerabilities: filteredVulnerabilities, msg: "Scan Vulnerabilities Found"})
         }
     },
 

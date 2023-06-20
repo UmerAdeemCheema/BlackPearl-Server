@@ -338,7 +338,7 @@ var vulnfunctions = {
 
   deleteDomainScan: async function (req, res) {
     if (!req.body.domainname) {
-      res.json({ success: false, msg: 'Enter all Fields' });
+      res.status(403).send({ success: false, msg: 'Enter all Fields' });
     } 
     else {
         
@@ -355,7 +355,7 @@ var vulnfunctions = {
 
   updateScanStatus: async function (req, res) {
     if (!req.body.domainname || !req.body.status) {
-      res.json({ success: false, msg: 'Enter all Fields' });
+      res.status(403).send({ success: false, msg: 'Enter all Fields' });
     } 
     else {
       const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname));

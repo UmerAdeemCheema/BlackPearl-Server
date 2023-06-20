@@ -26,6 +26,9 @@ router.post('/getSubDomainScanVulnerabilities', middleware.authenticateToken, ac
 router.post('/getSubDomainScanInfo', middleware.authenticateToken, actions.getSubDomainScanInfo)
 router.post('/getSubDomainScanPorts', middleware.authenticateToken, actions.getSubDomainScanPorts)
 router.post('/getSubDomainScanURLs', middleware.authenticateToken, actions.getSubDomainScanURLs)
+router.post('/getDomainScanSubdomainsDetails', middleware.authenticateToken, actions.getDomainScanSubdomainsDetails)
+
+
 
 
 

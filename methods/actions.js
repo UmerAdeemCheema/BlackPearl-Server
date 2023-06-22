@@ -5,7 +5,7 @@ var SubDomainScan = require('../models/subdomainscan')
 const jwt = require('jsonwebtoken')
 const secretKey = require('../config/dbconfig').secret
 var bcrypt = require('bcrypt')
-
+const emailValidator = require('deep-email-validator');
 
 
 var functions = {
@@ -19,22 +19,29 @@ var functions = {
             if (user) {
               res.status(403).send({ success: false, msg: 'Email Already exists, Change Email Address' });
             } else {
-              const apikey = generateApiKey();
+                const {valid, reason, validators} = await emailValidator.validate(req.body.email)
+                if (valid){
+                    const apikey = generateApiKey();
       
-              const newUser = new User({
-                email: req.body.email,
-                name: req.body.name,
-                phone: req.body.phone,
-                password: req.body.password,
-                country: req.body.country,
-                profilepicname: 'default',
-                apiKey: apikey,
-                vulnScans: []
-              });
-      
-              const savedUser = await newUser.save();
-      
-              res.json({ success: true, msg: 'Account successfullcreated'});
+                    const newUser = new User({
+                        email: req.body.email,
+                        name: req.body.name,
+                        phone: req.body.phone,
+                        password: req.body.password,
+                        country: req.body.country,
+                        profilepicname: 'default',
+                        apiKey: apikey,
+                        vulnScans: []
+                    });
+            
+                    const savedUser = await newUser.save();
+            
+                    res.json({ success: true, msg: 'Account successfully created'});
+                }
+                else{
+                    res.status(403).send({ success: false, msg: 'Invalid Email Address' });
+                }
+              
             }
           } catch (err) {
             res.json({ success: false, msg: 'Failed to Save', err: err });
@@ -95,7 +102,7 @@ var functions = {
 
     updateattribute: async function(req, res) {
         if ((!req.body.attribute) || (!req.body.newvalue)){
-            return res.status(200).json({success:false, msg: 'Enter all Fields'})
+            return res.status(400).json({success:false, msg: 'Enter all Fields'})
         }
         if(req.body.attribute == 'info')
         {
@@ -131,11 +138,11 @@ var functions = {
                     if(isMatch && !err){
                         bcrypt.genSalt(10, function(err, salt){
                             if(err){
-                                return res.status(200).send({success: false, msg: "Error"});
+                                return res.status(400).send({success: false, msg: "Error"});
                             }
                             bcrypt.hash(req.body.newvalue.newpassword, salt, async function (err, hash){
                                 if(err){
-                                    return res.status(200).send({success: false, msg: "Error"});
+                                    return res.status(400).send({success: false, msg: "Error"});
                                 }
                                 pass = hash;
                                 var index = await User.findOneAndUpdate(
@@ -145,7 +152,7 @@ var functions = {
                                     return res.status(200).send({success: true, msg: "attribute updated"})
                                 } 
                                 else{
-                                    return res.status(200).json({success:false, msg: 'User not found'})
+                                    return res.status(400).json({success:false, msg: 'User not found'})
                                 }
                             })
                         })
@@ -164,14 +171,19 @@ var functions = {
             var user = await User.findOne({email: req.user.email})
 
             if (!user){
-                return res.status(200).send({success: true, msg: "User not found"})
+                return res.status(400).send({success: true, msg: "User not found"})
             } 
+
+            const {valid, reason, validators} = await emailValidator.validate(req.body.email)
+            if (!valid){
+                return res.status(400).send({success: false, msg: "Invalid new Email"})
+            }
 
             user.comparePassword(req.body.newvalue.password, async function (err, isMatch){
                 if(isMatch && !err){
                     var auser = await User.findOne({email: req.body.newvalue.email})
                     if(auser) {
-                        return res.status(200).send({success: false, msg: "Email Already exists, Change Email Address"})
+                        return res.status(400).send({success: false, msg: "Email Already exists, Change Email Address"})
                     }
 
                     var index = await User.findOneAndUpdate(
@@ -182,7 +194,7 @@ var functions = {
                         return res.status(200).send({success: true, token: token, msg: "attribute updated"}) 
                     } 
                     else{
-                        return res.status(200).json({success:false, msg: 'User not found'})
+                        return res.status(400).json({success:false, msg: 'User not found'})
                     }
                         
 
@@ -193,7 +205,7 @@ var functions = {
             })
         }
         else{
-            return res.status(200).json({success:false, msg: 'Illegal attribute name'})
+            return res.status(400).json({success:false, msg: 'Illegal attribute name'})
         }
     },
 

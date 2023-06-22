@@ -8,7 +8,7 @@ var SubDomainScan = require('../models/subdomainscan')
 var vulnfunctions = {
     createVulnerabilityScan: async function (req, res) {
         if (!req.body.domainname) {
-          res.json({ success: false, msg: 'Enter all Fields' });
+          return res.status(403).send({ success: false, msg: 'Enter all Fields' });
         } 
         else {
             const domainExists = req.user.vulnScans.some(scan => scan.domainName === req.body.domainname);
@@ -45,7 +45,7 @@ var vulnfunctions = {
                     { $push: { vulnScans: vulnUserAppend } },
                     { new: true }
                 )
-                res.json({ success: true, msg: 'Successfully saved', scan: savedScan });
+                return res.json({ success: true, msg: 'Successfully saved', scan: savedScan });
                
             }
           
@@ -54,7 +54,7 @@ var vulnfunctions = {
 
     subdomainsEnumerated: async function (req, res) {
         if (!req.body.domainname || !req.body.data) {
-          res.json({ success: false, msg: 'Enter all Fields' });
+          return res.status(403).send({ success: false, msg: 'Enter all Fields' });
         } 
         else if(!isSubdomainListValidObject(req.body.data)){
             res.status(403).send({ success: false, msg: 'data object not valid' });
@@ -79,7 +79,7 @@ var vulnfunctions = {
                     { new: true }
                 )
 
-                res.json({ success: true, msg: 'Successfully saved' });
+                return res.json({ success: true, msg: 'Successfully saved' });
                
             }
           
@@ -88,10 +88,10 @@ var vulnfunctions = {
 
     subdomainScanInitiated: async function (req, res) {
         if (!req.body.domainname || !req.body.subdomainname) {
-          res.json({ success: false, msg: 'Enter all Fields' });
+          return res.status(403).send({ success: false, msg: 'Enter all Fields' });
         } 
         else if (!req.body.subdomainname.endsWith(req.body.domainname)) {
-            res.json({ success: false, msg: 'Invalid Subdomain' });
+          return res.status(403).send({ success: false, msg: 'Invalid Subdomain' });
         } 
         else {
             const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.process === "Start Subdomain"  && scan.status == "Running"));
@@ -126,7 +126,7 @@ var vulnfunctions = {
                     { $set: { 'vulnScans.$.inProcessSubdomain': req.body.subdomainname, 'vulnScans.$.process': 'Port Scan' } },
                     { new: true }
                 )
-                res.json({ success: true, msg: 'Successfully saved', scan: savedScan });
+                return res.json({ success: true, msg: 'Successfully saved', scan: savedScan });
                
             }
           
@@ -135,7 +135,7 @@ var vulnfunctions = {
 
   portScan: async function (req, res) {
       if (!req.body.domainname || !req.body.subdomainname || !req.body.data) {
-        res.json({ success: false, msg: 'Enter all Fields' });
+        return res.status(403).send({ success: false, msg: 'Enter all Fields' });
       } 
       else if (typeof req.body.data !== 'object' || !Array.isArray(req.body.data.array) || typeof req.body.data.numberOfRunningPorts !== 'number') {
         res.status(403).send({ success: false, msg: 'data object not valid' });
@@ -159,7 +159,7 @@ var vulnfunctions = {
                   { $set: { 'vulnScans.$.process': 'DirBrute' } },
                   { new: true }
               )
-              res.json({ success: true, msg: 'Successfully saved'});
+              return res.json({ success: true, msg: 'Successfully saved'});
              
           }
       }
@@ -167,7 +167,7 @@ var vulnfunctions = {
 
   dirBrute: async function (req, res) {
     if (!req.body.domainname || !req.body.subdomainname || !req.body.data) {
-      res.json({ success: false, msg: 'Enter all Fields' });
+      return res.status(403).send({ success: false, msg: 'Enter all Fields' });
     } 
     else if (typeof req.body.data !== 'object' || !Array.isArray(req.body.data.array) || typeof req.body.data.numberOfURLs !== 'number') {
       res.status(403).send({ success: false, msg: 'data object not valid' });
@@ -189,15 +189,15 @@ var vulnfunctions = {
                 { $set: { 'vulnScans.$.process': 'Vulnerability 3' } },
                 { new: true }
             )
-            res.json({ success: true, msg: 'Successfully saved'});
+            return res.json({ success: true, msg: 'Successfully saved'});
           
         }
     }
   },
 
   addVulnerability: async function (req, res) {
-    if (!req.body.domainname || !req.body.subdomainname || !req.body.data || !req.body.data.vulnerability_id || !req.body.data.severity) {
-      res.json({ success: false, msg: 'Enter all Fields' });
+    if (!req.body.domainname || (!req.body.subdomainname && (req.body.data.vulnerability_id != 1 && req.body.data.vulnerability_id != 2)) || !req.body.data || !req.body.data.vulnerability_id || !req.body.data.severity) {
+      return res.status(403).send({ success: false, msg: 'Enter all Fields' });
     }
     else {
         const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability") && scan.status == "Running" && parseInt(scan.process.split(' ')[1]) == req.body.data.vulnerability_id ));
@@ -218,7 +218,7 @@ var vulnfunctions = {
           )
 
           if(req.body.data.vulnerability_id == 1 || req.body.data.vulnerability_id == 2){
-            res.json({ success: true, msg: 'Successfully saved'});
+            return res.json({ success: true, msg: 'Successfully saved'});
           }
 
           await SubDomainScan.findOneAndUpdate(
@@ -227,7 +227,7 @@ var vulnfunctions = {
             { new: true }
           )
 
-          res.json({ success: true, msg: 'Successfully saved'});
+          return res.json({ success: true, msg: 'Successfully saved'});
           
         }
     }
@@ -235,10 +235,10 @@ var vulnfunctions = {
 
   switchVulnerability: async function (req, res) {
     if (!req.body.domainname || !req.body.vulnerability_id) {
-      res.json({ success: false, msg: 'Enter all Fields' });
+      return res.status(403).send({ success: false, msg: 'Enter all Fields' });
     } 
     else if (typeof req.body.vulnerability_id !== 'number') {
-      res.json({ success: false, msg: 'Invalid Vulnerability Id' });
+      return res.status(403).send({ success: false, msg: 'Invalid Vulnerability Id' });
     }
     else {
         const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.process === "Vulnerability "+req.body.vulnerability_id && scan.status == "Running"));
@@ -261,7 +261,7 @@ var vulnfunctions = {
                 { $set: { 'vulnScans.$.process': vuln } },
                 { new: true }
             )
-            res.json({ success: true, msg: 'Successfully saved'});
+            return res.json({ success: true, msg: 'Successfully saved'});
           
         }
     }
@@ -269,13 +269,13 @@ var vulnfunctions = {
 
   completeSubdomainScan: async function (req, res) {
     if (!req.body.domainname || !req.body.subdomainname) {
-      res.json({ success: false, msg: 'Enter all Fields' });
+      return res.status(403).send({ success: false, msg: 'Enter all Fields' });
     } 
     else {
         const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname && scan.inProcessSubdomain === req.body.subdomainname && scan.process.startsWith("Vulnerability") && scan.status == "Running"));
   
         if (!conflict) {
-          res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
+          return res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
         } 
         else {
 
@@ -290,7 +290,7 @@ var vulnfunctions = {
                 { $set: { 'vulnScans.$.inProcessSubdomain': "", 'vulnScans.$.process': 'Start Subdomain' }, $inc: { 'vulnScans.$.subDomainsScanned': 1 } },
                 { new: true }
             )
-            res.json({ success: true, msg: 'Successfully saved' });
+            return res.json({ success: true, msg: 'Successfully saved' });
            
         }
 
@@ -299,13 +299,13 @@ var vulnfunctions = {
 
   completeDomainScan: async function (req, res) {
     if (!req.body.domainname) {
-      res.json({ success: false, msg: 'Enter all Fields' });
+      return res.status(403).send({ success: false, msg: 'Enter all Fields' });
     } 
     else {
         const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname) && scan.status == "Running");
   
         if (!conflict) {
-          res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
+          return res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
         } 
         else {
           var noOfsubDomains = await DomainScan.findOne({ email: req.user.email, domainName: req.body.domainname }).select('subdomainsFound.numberOfActiveSubdomains')
@@ -328,7 +328,7 @@ var vulnfunctions = {
                   { $set: { 'vulnScans.$.process': 'Completed' } },
                   { new: true }
               )
-              res.json({ success: true, msg: 'Successfully saved' });
+              return res.json({ success: true, msg: 'Successfully saved' });
           }
            
         }
@@ -349,19 +349,19 @@ var vulnfunctions = {
         { email: req.user.email }, 
         { $pull: { vulnScans: { domainName: req.body.domainname } } } 
       )
-      res.json({ success: true, msg: 'Successfully saved' });
+      return res.json({ success: true, msg: 'Successfully saved' });
     }
   },
 
   updateScanStatus: async function (req, res) {
     if (!req.body.domainname || !req.body.status) {
-      res.status(403).send({ success: false, msg: 'Enter all Fields' });
+      return res.status(403).send({ success: false, msg: 'Enter all Fields' });
     } 
     else {
       const conflict = req.user.vulnScans.some(scan => (scan.domainName === req.body.domainname));
 
       if (!conflict) {
-        res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
+        return res.status(403).send({ success: false, msg: 'There is a conflict in the Synchronization of data' });
       } 
       else {
           await DomainScan.findOneAndUpdate(
@@ -374,7 +374,7 @@ var vulnfunctions = {
                 { $set: { 'vulnScans.$.status': req.body.status } },
                 { new: true }
             )
-            res.json({ success: true, msg: 'Successfully saved' });
+            return res.json({ success: true, msg: 'Successfully saved' });
       }
     }
   },

@@ -150,7 +150,7 @@ var vulnfunctions = {
 
               await SubDomainScan.findOneAndUpdate(
                 { email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname },
-                { $set: { ports: req.body.data } },
+                { $set: { ports: req.body.data, progress: 5 } },
                 { new: true }
               )
 
@@ -181,7 +181,7 @@ var vulnfunctions = {
         else {
             await SubDomainScan.findOneAndUpdate(
               { email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname },
-              { $set: { urls: req.body.data } },
+              { $set: { urls: req.body.data, progress: 15 } },
               { new: true }
             )
             await User.findOneAndUpdate(
@@ -256,6 +256,34 @@ var vulnfunctions = {
             if(req.body.vulnerability_id == 2){
               vuln = "Start Subdomain"
             }
+
+            if (req.body.vulnerability_id != 2 && req.body.vulnerability_id != 1){
+              for (let obj of req.user.vulnScans) {
+                if (obj.domainName === req.body.domainname) {
+                  subdomainname = obj.inProcessSubdomain;
+                }
+              }
+
+              const updatedDocument = await SubDomainScan.findOneAndUpdate(
+                {
+                  email: req.user.email,
+                  domainName: req.body.domainname,
+                  subdomainName: subdomainname
+                },
+                { $inc: { progress: 6 } },
+                { new: true }
+              );
+            
+              if (updatedDocument) {
+                // console.log('Updated document:', updatedDocument);
+              } else {
+                // console.log(req.body)
+                console.log('Document not found or not updated.');
+              }
+            }
+
+            
+            
             await User.findOneAndUpdate(
                 { email: req.user.email, 'vulnScans.domainName': req.body.domainname },
                 { $set: { 'vulnScans.$.process': vuln } },
@@ -279,9 +307,33 @@ var vulnfunctions = {
         } 
         else {
 
+          var subDomains = await DomainScan.findOne({ email: req.user.email, domainName: req.body.domainname }).select('subdomainsFound.activeSubdomains')
+          // console.log(subDomains)
+          var noOfsubDomains = subDomains.subdomainsFound.activeSubdomains.length
+
           await SubDomainScan.findOneAndUpdate(
             { email: req.user.email, domainName: req.body.domainname, subdomainName: req.body.subdomainname },
             { $set: { progress: 100, status:"Start Subdomain", } },
+            { new: true }
+          )
+
+          scannedSubdomains = 0;
+
+          for (let obj of req.user.vulnScans) {
+            if (obj.domainName === req.body.domainname) {
+              scannedSubdomains = obj.subDomainsScanned + 1;
+            }
+          }
+
+          var progressPercentage = (scannedSubdomains/noOfsubDomains)*100
+          progressPercentage = Math.round(progressPercentage)
+          console.log(progressPercentage)
+          console.log(scannedSubdomains)
+          console.log(noOfsubDomains)
+
+          await DomainScan.findOneAndUpdate(
+            { email: req.user.email, domainName: req.body.domainname },
+            { $set: { progress: progressPercentage } },
             { new: true }
           )
 

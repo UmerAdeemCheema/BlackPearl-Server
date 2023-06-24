@@ -15,7 +15,7 @@ var subdomainScanSchema= new Schema({
         required:true
     },
     progress:{
-        type: String,
+        type: Number,
         required:true
     },
     status:{
